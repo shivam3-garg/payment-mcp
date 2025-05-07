@@ -100,14 +100,14 @@ if __name__ == "__main__":
     import asyncio
     import os
 
-    port = int(os.environ.get("PORT", 8888))  # Render sets PORT automatically
+    port = int(os.environ.get("PORT", 8000))
     asyncio.run(
         mcp.run_sse_async(
-            host="0.0.0.0",
             port=port,
             log_level="debug"
         )
     )
+
 
 
 
