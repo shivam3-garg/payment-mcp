@@ -1,5 +1,6 @@
-httpx>=0.28.1
-mcp[cli]>=1.7.0
-requests
-pycryptodome
-paytmchecksum
+httpx==0.28.1
+mcp[cli]==1.7.1
+requests==2.32.3
+pycryptodome==3.20.0
+paytmchecksum==1.0.5
+python-dotenv==1.1.0
