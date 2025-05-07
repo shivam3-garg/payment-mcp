@@ -98,4 +98,5 @@ def fetch_transactions_for_link(link_id: str) -> List[dict]:
 
 if __name__ == "__main__":
     logger.info("Starting Paytm MCP Server...")
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    mcp.run()
+
