@@ -96,17 +96,17 @@ def fetch_transactions_for_link(link_id: str) -> List[dict]:
         return [{"error": str(e)}]
 
 
-if __name__ == "__main__":
-    import asyncio
-    import os
+import asyncio
+import os
 
-    port = int(os.environ.get("PORT", 8000))
-    asyncio.run(
-        mcp.run_sse_async(
-            port=port,
-            log_level="debug"
-        )
+port = int(os.environ.get("PORT", 8000))
+asyncio.run(
+    mcp.run_sse_async(
+        port=port,
+        log_level="debug"
     )
+)
+
 
 
 
