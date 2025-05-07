@@ -153,8 +153,3 @@ def fetch_transactions_for_link(link_id: str) -> str:
     except Exception as e:
         logger.error(f"Failed to fetch transactions: {str(e)}")
         return str(e)
-
-
-
-if __name__ == "__main__":
-    mcp.run()
