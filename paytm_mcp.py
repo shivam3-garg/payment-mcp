@@ -8,6 +8,9 @@ from services.payment_service import PaymentService
 from config.settings import settings
 from utils.models import PaymentLink, Transaction
 
+# Load environment variables (if running locally)
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -17,18 +20,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create MCP server
+# Initialize MCP server
 mcp = FastMCP("paytm-mcp-server")
 
 # Initialize services
 try:
-    # email_service = EmailService()
-    payment_service = PaymentService(os.environ.get("PAYTM_KEY_SECRET"),os.environ.get("PAYTM_MID"))
+    mid = os.environ.get("PAYTM_MID")
+    key = os.environ.get("PAYTM_KEY_SECRET")
+
+    if not mid or not key:
+        logger.error("Missing PAYTM credentials. Please set PAYTM_MID and PAYTM_KEY_SECRET.")
+        sys.exit(1)
+
+    payment_service = PaymentService(key, mid)
 except Exception as e:
     logger.error(f"Failed to initialize services: {str(e)}")
     sys.exit(1)
 
-# Tool: Create Payment Link
+
 @mcp.tool()
 def create_payment_link(
     recipient_name: str,
@@ -38,32 +47,13 @@ def create_payment_link(
     amount: str = None,
 ) -> str:
     """
-    Create a new payment link for receiving payments.
-
-    This operation generates a unique payment link that can be shared with customers
-    for accepting payments. The link can be customized with recipient details,
-    purpose, customer details and amount.
-
-    Required Parameters:
-        recipient_name (str): Name of the person or entity receiving the payment
-        purpose (str): Description or reason for the payment
-        customer_email (str): Email address of the customer
-        customer_mobile (str): Mobile number of the customer
-        Either customer_email or customer_mobile must be provided if else please ask from the user
-
-    Optional Parameters:
-        amount (float): Fixed amount for the payment
-
-    Note:
-        - Amount can be left optional for customer to decide
-        - Generated link will be valid according to system's expiry settings
-        - Please ask all the required fields from the user don't assume any fields
-    
-    IMPORTANT NOTE:
-        - if user is not providing customer_email or customer_mobile, please ask for the same don't call any tool before asking for the same
-        """
-    
+    Create a new payment link with recipient and purpose. Optional amount can be fixed.
+    Either customer_email or customer_mobile must be provided.
+    """
     try:
+        if not customer_email and not customer_mobile:
+            return "Please provide at least one of customer_email or customer_mobile."
+
         return payment_service.create_payment_link(
             recipient_name=recipient_name,
             purpose=purpose,
@@ -75,86 +65,37 @@ def create_payment_link(
         logger.error(f"Failed to create payment link: {str(e)}")
         return str(e)
 
-# Tool: Fetch All Payment Links
+
 @mcp.tool()
-def fetch_payment_links() -> str:
+def fetch_payment_links() -> List[dict]:
     """
-    Retrieve all payment links created by the merchant.
-
-    This operation returns a comprehensive list of all payment links created,
-    including both active and expired links. Each link entry contains details
-    such as:
-        - Link ID
-        - Link Name
-        - Short URL
-        - Status
-        - Creation Date
-        - Expiry Date
-
-    Returns:
-        List[PaymentLink]: A list of PaymentLink objects containing link details
-        str: Error message in case of failure
+    Fetch all payment links created by the merchant.
     """
     try:
         links: List[PaymentLink] = payment_service.fetch_payment_links()
         if not links:
-            return "No payment links found."
-        
-        # result = "Available Payment Links:\n"
-        # for link in links:
-        #     result += (f"Link ID: {link.link_id}, "
-        #               f"Name: {link.link_name}, "
-        #               f"Short URL: {link.short_url}, "
-        #               f"Status: {link.status}, "
-        #               f"Created: {link.created_date}, "
-        #               f"Expires: {link.expiry_date}\n")
-        return links
+            return [{"message": "No payment links found."}]
+        return [link.dict() for link in links]
     except Exception as e:
         logger.error(f"Failed to fetch payment links: {str(e)}")
-        return str(e)
+        return [{"error": str(e)}]
 
-# Tool: Fetch Transactions for a Specific Link
+
 @mcp.tool()
-def fetch_transactions_for_link(link_id: str) -> str:
+def fetch_transactions_for_link(link_id: str) -> List[dict]:
     """
-    Retrieve all transactions associated with a specific payment link.
-
-    This operation provides detailed transaction history for a given payment link,
-    including successful and failed transactions.
-
-    Parameters:
-        link_id (str): Unique identifier of the payment link
-
-    Returns:
-        List[Transaction]: List of transactions containing details such as:
-            - Transaction ID
-            - Order ID
-            - Amount
-            - Status
-            - Completion Time
-            - Customer Contact Information
-        str: Error message in case of failure
+    Fetch all transactions related to a specific payment link.
     """
     try:
         transactions: List[Transaction] = payment_service.fetch_transactions_for_link(link_id)
         if not transactions:
-            return f"No transactions found for link ID {link_id}."
-        
-        # result = f"Transactions for Link ID {link_id}:\n"
-        # for txn in transactions:
-        #     result += (f"Transaction ID: {txn.txn_id}, "
-        #               f"Order ID: {txn.order_id}, "
-        #               f"Amount: {txn.amount}, "
-        #               f"Status: {txn.status}, "
-        #               f"Completed: {txn.completed_time}, "
-        #               f"Customer Phone: {txn.customer_phone or 'N/A'}, "
-        #               f"Customer Email: {txn.customer_email or 'N/A'}\n")
-        return transactions
+            return [{"message": f"No transactions found for link ID {link_id}."}]
+        return [txn.dict() for txn in transactions]
     except Exception as e:
         logger.error(f"Failed to fetch transactions: {str(e)}")
-        return str(e)
-
+        return [{"error": str(e)}]
 
 
 if __name__ == "__main__":
-    mcp.run()
+    logger.info("Starting Paytm MCP Server...")
+    mcp.run(transport="sse", host="0.0.0.0", port=8000)
