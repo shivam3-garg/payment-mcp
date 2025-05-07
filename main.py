@@ -1,10 +1,14 @@
 from fastapi import FastAPI
-from paytm_mcp import mcp  # Import the MCP instance with all registered tools
+from paytm_mcp import mcp  # ✅ IMPORT — do NOT re-instantiate MCP here
+
+import paytm_mcp
 
 app = FastAPI()
+
+# ✅ Mount registered tools
 app.mount("/tools", mcp.sse_app())
 
-# Optional: Health check
+# ✅ Optional: health check
 @app.get("/")
 def root():
     return {"status": "MCP Server is running"}
