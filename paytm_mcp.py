@@ -97,8 +97,18 @@ def fetch_transactions_for_link(link_id: str) -> List[dict]:
 
 
 if __name__ == "__main__":
-    logger.info("Starting Paytm MCP Server...")
-    mcp.run(transport="sse", host="0.0.0.0", port=8000)
+    import asyncio
+    import os
+
+    port = int(os.environ.get("PORT", 8888))  # Render sets PORT automatically
+    asyncio.run(
+        mcp.run_sse_async(
+            host="0.0.0.0",
+            port=port,
+            log_level="debug"
+        )
+    )
+
 
 
 
