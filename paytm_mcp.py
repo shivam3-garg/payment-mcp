@@ -160,3 +160,6 @@ def fetch_transactions_for_link(link_id: str) -> str:
 
 # ✅ Final tool registration check
 logger.info("✅ FastMCP initialized (tool listing not supported in v1.7.1)")
+print("📦 Registered tools:")
+for t in mcp._tools:
+    print("🔧", t.name)
