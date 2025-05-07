@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 from typing import Optional, List
-
+from dotenv import load_dotenv  # ✅ To load local env during development
 from mcp.server.fastmcp import FastMCP
 from services.payment_service import PaymentService
 from config.settings import settings
