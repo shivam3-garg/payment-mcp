@@ -1,0 +1,13 @@
+# render.yaml
+services:
+  - type: web
+    name: paytm-mcp
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python paytm_mcp.py"
+    envVars:
+      - key: PAYTM_MID
+        value: ""  # Set this in Render dashboard
+      - key: PAYTM_KEY_SECRET
+        value: ""  # Set this in Render dashboard
+    plan: free
