@@ -1,6 +1,8 @@
-mcp[cli]==1.7.1
+git+https://github.com/anthropics/mcp.git@v1.7.1#egg=mcp[cli]
 httpx
 requests
 pycryptodome
 paytmchecksum
 python-dotenv
+
+
