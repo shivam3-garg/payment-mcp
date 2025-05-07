@@ -9,6 +9,9 @@ from config.settings import settings
 from utils.models import PaymentLink, Transaction
 
 
+# ✅ Load .env variables (for local dev)
+load_dotenv()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +27,7 @@ mcp = FastMCP("paytm-mcp-server")
 try:
     # email_service = EmailService()
     payment_service = PaymentService(os.environ.get("PAYTM_KEY_SECRET"),os.environ.get("PAYTM_MID"))
+    logger.info("✅ PaymentService initialized successfully.")
 except Exception as e:
     logger.error(f"Failed to initialize services: {str(e)}")
     sys.exit(1)
@@ -153,3 +157,6 @@ def fetch_transactions_for_link(link_id: str) -> str:
     except Exception as e:
         logger.error(f"Failed to fetch transactions: {str(e)}")
         return str(e)
+
+# ✅ Final tool registration check
+logger.info(f"✅ Registered MCP tools: {[tool.name for tool in mcp.tools]}")
