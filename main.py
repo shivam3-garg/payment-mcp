@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import paytm_mcp  # This forces execution of decorators
 from paytm_mcp import mcp  # ✅ Import same instance that has all the tools
 
 app = FastAPI()
