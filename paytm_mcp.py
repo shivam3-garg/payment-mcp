@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 
 # Create MCP server
 mcp = FastMCP("paytm-mcp-server", transport="sse")
-app = mcp.app  # Add this line
 
 # Initialize services
 try:
@@ -155,5 +154,5 @@ def fetch_transactions_for_link(link_id: str) -> str:
         logger.error(f"Failed to fetch transactions: {str(e)}")
         return str(e)
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  # Use PORT from env, default to 8080
+    port = int(os.environ.get("PORT", 8080))
     mcp.run(host="0.0.0.0", port=port)
