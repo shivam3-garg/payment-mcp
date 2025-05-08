@@ -2,15 +2,12 @@ import sys
 import os
 import logging
 from typing import Optional, List
-from dotenv import load_dotenv  # ✅ To load local env during development
+
 from mcp.server.fastmcp import FastMCP
 from services.payment_service import PaymentService
 from config.settings import settings
 from utils.models import PaymentLink, Transaction
 
-
-# ✅ Load .env variables (for local dev)
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -21,13 +18,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server
-mcp = FastMCP("paytm-mcp-server")
+mcp = FastMCP("paytm-mcp-server", transport="sse")
 
 # Initialize services
 try:
     # email_service = EmailService()
     payment_service = PaymentService(os.environ.get("PAYTM_KEY_SECRET"),os.environ.get("PAYTM_MID"))
-    logger.info("✅ PaymentService initialized successfully.")
 except Exception as e:
     logger.error(f"Failed to initialize services: {str(e)}")
     sys.exit(1)
@@ -158,6 +154,7 @@ def fetch_transactions_for_link(link_id: str) -> str:
         logger.error(f"Failed to fetch transactions: {str(e)}")
         return str(e)
 
-# ✅ Final tool registration check
-logger.info("✅ FastMCP initialized (tool listing not supported in v1.7.1)")
-print("ℹ️ Tool registration complete (MCP may not expose tool list in v1.7.1)")
+
+
+if __name__ == "__main__":
+    mcp.run()
