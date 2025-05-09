@@ -18,8 +18,8 @@ class PaymentService:
                 "linkType": "GENERIC" if amount is None else "FIXED",
                 "linkDescription": f"Payment for {purpose}",
                 "linkName": f"{purpose.replace(' ', '_')}_{recipient_name.replace(' ', '_')}",
-                "sendSms": True if customer_mobile is not None else False,
-                "sendEmail": True if customer_email is not None else False,
+                "sendSms": bool(customer_mobile),
+                "sendEmail": bool(customer_email),
                 "maxPaymentsAllowed": 1,
                 "customerContact": {
                     "customerName": recipient_name,

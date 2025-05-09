@@ -57,11 +57,17 @@ def create_payment_link(
         - Amount can be left optional for customer to decide
         - Generated link will be valid according to system's expiry settings
         - Please ask all the required fields from the user don't assume any fields
-    
+
     IMPORTANT NOTE:
         - if user is not providing customer_email or customer_mobile, please ask for the same don't call any tool before asking for the same
-        """
-    
+    """
+
+    # ✅ Step 1: Normalize fields
+    if customer_mobile in [None, "", "null"]:
+        customer_mobile = None
+    if customer_email in [None, "", "null"]:
+        customer_email = None
+
     try:
         return payment_service.create_payment_link(
             recipient_name=recipient_name,
@@ -73,6 +79,7 @@ def create_payment_link(
     except Exception as e:
         logger.error(f"Failed to create payment link: {str(e)}")
         return str(e)
+
 
 # Tool: Fetch All Payment Links
 @mcp.tool()
