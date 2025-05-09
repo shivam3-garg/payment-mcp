@@ -3,7 +3,9 @@ import json
 from paytmchecksum import PaytmChecksum
 import pprint
 from typing import Optional
+import logging
 
+logger = logging.getLogger(__name__)
 class PaymentService:
     def __init__(self, merchant_key: str, mid: str):
         self.merchant_key = merchant_key
