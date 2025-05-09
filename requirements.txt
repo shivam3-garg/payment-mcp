@@ -1,4 +1,4 @@
-mcp[cli]==1.7.1
+fastmcp>=2.0.0
 fastapi
 uvicorn
 httpx>=0.28.1

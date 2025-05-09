@@ -2,8 +2,7 @@ import sys
 import os
 import logging
 from typing import Optional, List
-
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from services.payment_service import PaymentService
 from config.settings import settings
 from utils.models import PaymentLink, Transaction
