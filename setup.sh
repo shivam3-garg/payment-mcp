@@ -40,7 +40,7 @@ if [ -d "$PROJECT_DIR" ]; then
     git pull
 else
     print_message "Cloning repository..."
-    git clone git@bitbucket.org:paytmteam/payment-mcp.git "$PROJECT_DIR"
+    git clone https://github.com/paytm/payment-mcp.git "$PROJECT_DIR"
     cd "$PROJECT_DIR"
 fi
 

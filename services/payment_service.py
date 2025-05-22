@@ -1,39 +1,26 @@
 import requests
 import json
 from paytmchecksum import PaytmChecksum
-import pprint
 from typing import Optional
-import logging
+from config.settings import settings
 
-logger = logging.getLogger(__name__)
 class PaymentService:
     def __init__(self, merchant_key: str, mid: str):
         self.merchant_key = merchant_key
         self.mid = mid
-        self.base_url = "https://secure.paytmpayments.com"
-    def create_payment_link(self, recipient_name: str, purpose: str, customer_email: str,
-                            customer_mobile: str, amount: float) -> str:
-        """Create a payment link for the specified recipient"""
-        
-        # ====== ✅ DEBUG LOGGING START ======
-        logger.info("====== 🧩 Debug Start: create_payment_link ======")
-        logger.info(f"Using MID: {self.mid}")
-        logger.info(f"Using Base URL: {self.base_url}")
-        logger.info(f"Recipient: {recipient_name}, Purpose: {purpose}")
-        logger.info(f"Customer Email: {customer_email}, Customer Mobile: {customer_mobile}")
-        logger.info(f"Amount: {amount}")
-        logger.info(f"sendEmail flag: {bool(customer_email)}")
-        logger.info(f"sendSms flag: {bool(customer_mobile)}")
-        # ====== ✅ DEBUG LOGGING END ======
+        self.base_url = settings.PAYTM_BASE_URL
 
+    def create_payment_link(self, recipient_name: str, purpose: str, customer_email: str, 
+                       customer_mobile: str, amount: float) -> str:
+        """Create a payment link for the specified recipient"""
         paytmParams = {
             "body": {
                 "mid": self.mid,
                 "linkType": "GENERIC" if amount is None else "FIXED",
                 "linkDescription": f"Payment for {purpose}",
                 "linkName": f"{purpose.replace(' ', '_')}_{recipient_name.replace(' ', '_')}",
-                "sendSms": bool(customer_mobile),   # ✅ FIXED LOGIC
-                "sendEmail": bool(customer_email), # ✅ FIXED LOGIC
+                "sendSms": True if customer_mobile is not None else False,
+                "sendEmail": True if customer_email is not None else False,
                 "maxPaymentsAllowed": 1,
                 "customerContact": {
                     "customerName": recipient_name,
@@ -46,10 +33,6 @@ class PaymentService:
         if amount is not None:
             paytmParams["body"]["amount"] = amount
 
-        # Log the payload
-        logger.info("Payload sent to Paytm:")
-        pprint.pprint(paytmParams)
-
         checksum = PaytmChecksum.generateSignature(json.dumps(paytmParams["body"]), self.merchant_key)
         paytmParams["head"] = {
             "tokenType": "AES",
@@ -61,30 +44,13 @@ class PaymentService:
                 f"{self.base_url}/link/create",
                 data=json.dumps(paytmParams),
                 headers={"Content-type": "application/json"}
-            )
-
-            response_data = response.json()
-            logger.info("Raw response from Paytm:")
-            pprint.pprint(response_data)
-
-            if response_data["body"]["resultInfo"]["resultStatus"] == "SUCCESS":
-                short_url = response_data["body"]["shortUrl"]
-                link_id = response_data["body"]["linkId"]
-                logger.info(f"✅ Payment link created successfully. Link ID: {link_id}, Short URL: {short_url}")
-                return {
-                    "payment_link_id": link_id,
-                    "short_url": short_url,
-                    "email_sent": bool(customer_email),
-                    "sms_sent": bool(customer_mobile)
-                }
-
-            logger.warning(f"❌ Failed to create payment link: {response_data['body']['resultInfo']['resultMessage']}")
-            return f"Failed to create payment link: {response_data['body']['resultInfo']['resultMessage']}"
-
+            ).json()
+            
+            if response["body"]["resultInfo"]["resultStatus"] == "SUCCESS":
+                return "url =" +response["body"]["shortUrl"] + "\n" +"linkId=" + str(response["body"]["linkId"])
+            return f"Failed to create payment link: {response['body']['resultInfo']['resultMessage']}"
         except Exception as e:
-            logger.exception("💥 Exception while creating payment link")
             return f"Error creating payment link: {str(e)}"
-
 
     def fetch_payment_links(self) -> str:
         """Fetch all payment links created by the merchant"""
@@ -165,3 +131,5 @@ class PaymentService:
             return f"Failed to fetch transactions: {response['body']['resultInfo']['resultMessage']}"
         except Exception as e:
             return f"Error fetching transactions: {str(e)}" 
+        
+    
