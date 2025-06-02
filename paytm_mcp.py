@@ -11,6 +11,8 @@ from config.settings import settings
 from utils.models import PaymentLink, Transaction
 from utils.system_utils import DateService
 from fastapi.responses import JSONResponse
+from starlette.responses import PlainTextResponse
+from starlette.requests import Request
 
 
 # Configure logging
@@ -23,6 +25,21 @@ logger = logging.getLogger(__name__)
 
 # Create MCP server
 mcp = FastMCP("paytm-mcp-server", transport="sse")
+
+@mcp.custom_route("/", methods=["GET"])
+async def root(request: Request):
+    return JSONResponse({
+        "status": "ok",
+        "message": "FastMCP server is running",
+        "service": "paytm-mcp-server"
+    })
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request: Request):
+    return JSONResponse({
+        "status": "healthy",
+        "service": "paytm-mcp-server"
+    })
 
 # Initialize services
 try:
