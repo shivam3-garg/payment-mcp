@@ -21,11 +21,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create MCP server - REMOVE transport="sse" for Render deployment
+# Create MCP server
 mcp = FastMCP("paytm-mcp-server")
 
+# Create a separate FastAPI app for HTTP endpoints
+from fastapi import FastAPI
+app = FastAPI(title="Paytm MCP Server", description="Payment service MCP server")
+
 # Add standard HTTP endpoints for health checks
-@mcp.app.get("/")
+@app.get("/")
 async def root():
     """Root endpoint for health checks"""
     return JSONResponse({
@@ -34,7 +38,7 @@ async def root():
         "message": "FastMCP server is running"
     })
 
-@mcp.app.get("/health")
+@app.get("/health")
 async def health():
     """Health check endpoint"""
     return JSONResponse({
@@ -42,7 +46,7 @@ async def health():
         "service": "paytm-mcp-server"
     })
 
-@mcp.app.get("/status")
+@app.get("/status")
 async def status():
     """Status endpoint showing available tools"""
     tools = [
@@ -330,9 +334,9 @@ def fetch_order_list(
         return str(e)
 
 # Add startup event to log successful initialization
-@mcp.app.on_event("startup")
+@app.on_event("startup")
 async def startup_event():
-    logger.info("FastMCP server started successfully")
+    logger.info("FastAPI server started successfully")
     logger.info("Available endpoints:")
     logger.info("  GET / - Root endpoint")
     logger.info("  GET /health - Health check")
@@ -342,16 +346,10 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     logger.info(f"Starting server on port {port}")
     
-    # Option 1: Use FastMCP's run method (recommended)
-    try:
-        mcp.run(host="0.0.0.0", port=port)
-    except Exception as e:
-        logger.error(f"Failed to start with FastMCP: {e}")
-        # Option 2: Fallback to direct uvicorn
-        logger.info("Trying direct uvicorn startup...")
-        uvicorn.run(
-            mcp.app,
-            host="0.0.0.0", 
-            port=port,
-            log_level="info"
-        )
+    # Use uvicorn to run the FastAPI app directly
+    uvicorn.run(
+        app,
+        host="0.0.0.0", 
+        port=port,
+        log_level="info"
+    )
