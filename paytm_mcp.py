@@ -21,17 +21,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-health_app = FastAPI()
+root_app = FastAPI()
 
-@health_app.get("/")
-async def root():
+@root_app.get("/")
+async def health_check():
     return JSONResponse({"status": "ok"})
 
-# ✅ Create MCP server (don't pass transport here)
+# ✅ Step 2: Create the MCP server
 mcp = FastMCP("paytm-mcp-server")
 
-# ✅ Mount the health app
-mcp.mount("/", health_app)
+# ✅ Step 3: Merge MCP and FastAPI via .as_fastapi() and include_router
+root_app.mount("/", mcp.as_fastapi())
 
 try:
     payment_service = PaymentService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
