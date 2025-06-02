@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server
-mcp = FastMCP("paytm-mcp-server", transport="sse")
+mcp = FastMCP("paytm-mcp-server")
 
 @mcp.custom_route("/", methods=["GET"])
 async def root(request: Request):
@@ -314,6 +314,6 @@ def fetch_order_list(
     
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    mcp.run(host="0.0.0.0", port=port,transport="sse")
+    mcp.run(host="0.0.0.0", port=port, transport="streamable-http")
 
 
