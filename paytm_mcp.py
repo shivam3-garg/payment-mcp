@@ -11,7 +11,7 @@ from config.settings import settings
 from utils.models import PaymentLink, Transaction
 from utils.system_utils import DateService
 from fastapi.responses import JSONResponse
-
+import uvicorn
 
 # Configure logging
 logging.basicConfig(
@@ -21,14 +21,51 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create MCP server
-mcp = FastMCP("paytm-mcp-server", transport="sse")
+# Create MCP server - REMOVE transport="sse" for Render deployment
+mcp = FastMCP("paytm-mcp-server")
+
+# Add standard HTTP endpoints for health checks
+@mcp.app.get("/")
+async def root():
+    """Root endpoint for health checks"""
+    return JSONResponse({
+        "status": "ok", 
+        "service": "paytm-mcp-server",
+        "message": "FastMCP server is running"
+    })
+
+@mcp.app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return JSONResponse({
+        "status": "healthy",
+        "service": "paytm-mcp-server"
+    })
+
+@mcp.app.get("/status")
+async def status():
+    """Status endpoint showing available tools"""
+    tools = [
+        "create_payment_link",
+        "fetch_payment_links", 
+        "fetch_transactions_for_link",
+        "initiate_refund",
+        "check_refund_status",
+        "fetch_refund_list",
+        "fetch_order_list"
+    ]
+    return JSONResponse({
+        "status": "active",
+        "available_tools": tools,
+        "service": "paytm-mcp-server"
+    })
 
 # Initialize services
 try:
     payment_service = PaymentService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
     refund_service = RefundService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
     order_list_service = OrderListService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
+    logger.info("Services initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize services: {str(e)}")
     sys.exit(1)
@@ -204,9 +241,6 @@ def check_refund_status(order_id: str, refund_reference_id: str) -> str:
         logger.error(f"Failed to check refund status: {str(e)}")
         return str(e)
     
-
-
-    
 # Tool: Fetch Refund List
 @mcp.tool()
 def fetch_refund_list(
@@ -294,8 +328,30 @@ def fetch_order_list(
     except Exception as e:
         logger.error(f"Failed to fetch order list: {str(e)}")
         return str(e)
+
+# Add startup event to log successful initialization
+@mcp.app.on_event("startup")
+async def startup_event():
+    logger.info("FastMCP server started successfully")
+    logger.info("Available endpoints:")
+    logger.info("  GET / - Root endpoint")
+    logger.info("  GET /health - Health check")
+    logger.info("  GET /status - Service status")
     
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    mcp.run(host="0.0.0.0", port=port,transport="sse")
-
+    logger.info(f"Starting server on port {port}")
+    
+    # Option 1: Use FastMCP's run method (recommended)
+    try:
+        mcp.run(host="0.0.0.0", port=port)
+    except Exception as e:
+        logger.error(f"Failed to start with FastMCP: {e}")
+        # Option 2: Fallback to direct uvicorn
+        logger.info("Trying direct uvicorn startup...")
+        uvicorn.run(
+            mcp.app,
+            host="0.0.0.0", 
+            port=port,
+            log_level="info"
+        )
