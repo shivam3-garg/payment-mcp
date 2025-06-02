@@ -10,6 +10,7 @@ from services.order_list_service import OrderListService
 from config.settings import settings
 from utils.models import PaymentLink, Transaction
 from utils.system_utils import DateService
+from fastapi.responses import JSONResponse
 
 
 # Configure logging
@@ -23,6 +24,9 @@ logger = logging.getLogger(__name__)
 # Create MCP server
 mcp = FastMCP("paytm-mcp-server", transport="sse")
 
+@mcp.app.get("/")
+async def root():
+    return JSONResponse({"status": "ok"})
 # Initialize services
 try:
     payment_service = PaymentService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
