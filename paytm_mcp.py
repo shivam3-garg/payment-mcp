@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 from typing import Optional, List
-from fastapi import FastAPI
+
 from fastmcp import FastMCP
 from services.payment_service import PaymentService
 from services.refund_service import RefundService
@@ -21,18 +21,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-root_app = FastAPI()
+# Create MCP server
+mcp = FastMCP("paytm-mcp-server", transport="sse")
 
-@root_app.get("/")
-async def health_check():
-    return JSONResponse({"status": "ok"})
-
-# ✅ Step 2: Create the MCP server
-mcp = FastMCP("paytm-mcp-server")
-
-# ✅ Step 3: Merge MCP and FastAPI via .as_fastapi() and include_router
-root_app.mount("/", mcp.as_fastapi())
-
+# Initialize services
 try:
     payment_service = PaymentService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
     refund_service = RefundService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
@@ -306,3 +298,4 @@ def fetch_order_list(
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     mcp.run(host="0.0.0.0", port=port,transport="sse")
+
