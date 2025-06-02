@@ -295,6 +295,11 @@ def fetch_order_list(
         logger.error(f"Failed to fetch order list: {str(e)}")
         return str(e)
     
+mcp.asgi_app().add_api_route(
+    path="/health",
+    endpoint=lambda: JSONResponse({"status": "ok"}),
+    methods=["GET"]
+)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     mcp.run(host="0.0.0.0", port=port,transport="sse")
