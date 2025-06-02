@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 from typing import Optional, List
-
+from fastapi import FastAPI
 from fastmcp import FastMCP
 from services.payment_service import PaymentService
 from services.refund_service import RefundService
@@ -22,12 +22,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server
-mcp = FastMCP("paytm-mcp-server", transport="sse")
-
-@mcp.app.get("/")
+app = FastAPI()
+@app.get("/")
 async def root():
     return JSONResponse({"status": "ok"})
-# Initialize services
+
+# ✅ Create the MCP instance without transport
+mcp = FastMCP("paytm-mcp-server")
+
+# ✅ Mount your health check route app into FastMCP
+mcp.mount("/", app)
+
 try:
     payment_service = PaymentService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
     refund_service = RefundService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
