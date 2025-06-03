@@ -13,6 +13,7 @@ from utils.system_utils import DateService
 from fastapi.responses import JSONResponse
 from starlette.responses import PlainTextResponse
 from starlette.requests import Request
+from fastmcp import ToolMessage, ToolMessageBlock
 
 
 # Configure logging
@@ -90,13 +91,14 @@ def create_payment_link(
     if customer_email in [None, "", "null"]:
         customer_email = None  
     try:
-        return payment_service.create_payment_link(
+        result = payment_service.create_payment_link(
             recipient_name=recipient_name,
             purpose=purpose,
             customer_email=customer_email,
             customer_mobile=customer_mobile,
             amount=amount
         )
+        return ToolMessage(content=[ToolMessageBlock(text=result)])
     except Exception as e:
         logger.error(f"Failed to create payment link: {str(e)}")
         return str(e)
