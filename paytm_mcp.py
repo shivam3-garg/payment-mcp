@@ -13,7 +13,6 @@ from utils.system_utils import DateService
 from fastapi.responses import JSONResponse
 from starlette.responses import PlainTextResponse
 from starlette.requests import Request
-from langchain_core.messages import ToolMessage
 
 
 # Configure logging
@@ -25,8 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server
-mcp = FastMCP("paytm-mcp-server")
-
+mcp = FastMCP("paytm-mcp-server", transport="sse")
 @mcp.custom_route("/", methods=["GET"])
 async def root(request: Request):
     return JSONResponse({
@@ -91,14 +89,13 @@ def create_payment_link(
     if customer_email in [None, "", "null"]:
         customer_email = None  
     try:
-        result = payment_service.create_payment_link(
+        return payment_service.create_payment_link(
             recipient_name=recipient_name,
             purpose=purpose,
             customer_email=customer_email,
             customer_mobile=customer_mobile,
             amount=amount
         )
-        return ToolMessage(content=result)
     except Exception as e:
         logger.error(f"Failed to create payment link: {str(e)}")
         return str(e)
@@ -316,6 +313,6 @@ def fetch_order_list(
     
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    mcp.run(host="0.0.0.0", port=port, transport="streamable-http")
+    mcp.run(host="0.0.0.0", port=port,transport="sse")
 
 
