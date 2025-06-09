@@ -46,7 +46,7 @@ try:
     refund_service = RefundService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
     order_list_service = OrderListService(settings.PAYTM_KEY_SECRET,settings.PAYTM_MID)
 except Exception as e:
-    logger.error(f"Failed to initialize services: {str(e)}")
+    logger.error(f"Unfortunately Failed to initialize services: {str(e)}")
     sys.exit(1)
 
 # Tool: Create Payment Link
