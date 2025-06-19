@@ -24,7 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create MCP server
-mcp = FastMCP("paytm-mcp-server")
+
+
 @mcp.custom_route("/", methods=["GET"])
 async def root(request: Request):
     return JSONResponse({
@@ -312,7 +313,9 @@ def fetch_order_list(
         return str(e)
 # Mount tools with error logging
 try:
-    mcp.mount(mcp.server,[
+    mcp = FastMCP(
+    name="paytm-mcp-server",
+    tools=[
         create_payment_link,
         fetch_payment_links,
         fetch_transactions_for_link,
@@ -320,7 +323,8 @@ try:
         check_refund_status,
         fetch_refund_list,
         fetch_order_list,
-    ])
+    ]
+)
     logger.info(f"✅ Mounted {len(mcp._tools)} MCP tools successfully.")
 except Exception as e:
     logger.error("\n🔥 MCP Tool Registration Failed 🔥")
