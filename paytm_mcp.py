@@ -315,7 +315,8 @@ def fetch_order_list(
 
 #app = mcp.sse_app
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    mcp.run(host="0.0.0.0", port=port,transport="sse")
+    #port = int(os.environ.get("PORT", 8080))
+    mcp.run(transport="sse")
+    #mcp.run(host="0.0.0.0", port=port,transport="sse")
 
 
