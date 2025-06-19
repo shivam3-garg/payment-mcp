@@ -310,7 +310,25 @@ def fetch_order_list(
     except Exception as e:
         logger.error(f"Failed to fetch order list: {str(e)}")
         return str(e)
-    
+# Mount tools with error logging
+try:
+    mcp.mount([
+        create_payment_link,
+        fetch_payment_links,
+        fetch_transactions_for_link,
+        initiate_refund,
+        check_refund_status,
+        fetch_refund_list,
+        fetch_order_list,
+    ])
+    logger.info(f"✅ Mounted {len(mcp._tools)} MCP tools successfully.")
+except Exception as e:
+    logger.error("\n🔥 MCP Tool Registration Failed 🔥")
+    logger.error(f"{type(e).__name__}: {str(e)}")
+    import traceback
+    logger.error(traceback.format_exc())
+    raise e    
+
 app = mcp.sse_app
 #if __name__ == "__main__":
 #    port = int(os.environ.get("PORT", 8080))
