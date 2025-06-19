@@ -312,7 +312,7 @@ def fetch_order_list(
         return str(e)
 # Mount tools with error logging
 try:
-    mcp.mount([
+    mcp.mount(mcp.server,[
         create_payment_link,
         fetch_payment_links,
         fetch_transactions_for_link,
